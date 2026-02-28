@@ -1,84 +1,65 @@
-🎟️ Event Ticketing System
-A full-stack application for managing event listings and ticket purchases, built with a modern, reactive tech stack.
+# Event Ticketing System
 
-🚀 Overview
-This project is a lightweight event management platform that allows users to browse upcoming events and purchase tickets in real-time. The system is designed for simplicity, utilizing a local file-based database for easy setup and development.
+A REST API for managing events and purchasing tickets, built with Kotlin and Spring Boot.
 
-🛠️ Tech Stack
-Backend
-Language: Kotlin
+## Stack
 
-Framework: Spring Boot 3.x
+- **Kotlin** + **Spring Boot 3.4**
+- **Spring Data JPA** + **H2** (file-based, persists between restarts)
+- **Gradle** (Kotlin DSL)
 
-Data Access: Spring Data JPA
+## Running
 
-Database: H2 Database (Local file-based)
+```bash
+./gradlew bootRun
+```
 
-Build Tool: Gradle (Kotlin DSL)
+The app starts on `http://localhost:8080`.
+The H2 console is available at `http://localhost:8080/h2-console`
+(JDBC URL: `jdbc:h2:file:./ticketing-db`, user: `sa`, password: empty).
 
-Frontend
-Framework: Vue 3 (Composition API)
+## API
 
-Build Tool: Vite
+### Get all events
 
-Styling: Tailwind CSS
+```
+GET /api/events
+```
 
-HTTP Client: Axios
+```json
+[
+  { "id": 1, "title": "Spring Boot Conference 2025", "date": "2025-06-15T09:00:00", "totalTickets": 99, "price": 49.99 },
+  { "id": 2, "title": "Kotlin Summit",               "date": "2025-07-20T10:00:00", "totalTickets": 50, "price": 79.99 },
+  { "id": 3, "title": "Cloud Native Day",             "date": "2025-08-10T09:00:00", "totalTickets": 2,  "price": 29.99 }
+]
+```
 
-📋 Key Features
-Event Catalog: Browse a list of available events with real-time ticket availability.
+### Purchase a ticket
 
-Ticket Purchasing: Secure transaction logic to handle ticket sales.
+```
+POST /api/tickets/purchase
+Content-Type: application/json
 
-Concurrency Management: Thread-safe backend to prevent over-selling of tickets.
+{ "eventId": 1, "customerName": "Jane Doe" }
+```
 
-Local Persistence: Data is stored locally in an H2 database file (./data/ticketdb).
+**201 Created**
+```json
+{ "id": 1, "eventId": 1, "customerName": "Jane Doe", "purchaseDate": "2026-02-28T14:55:27" }
+```
 
-🏗️ Getting Started
-Prerequisites
-JDK 17 or higher
+**404** — event not found
+**409** — no tickets remaining
 
-Node.js (v18+)
+## Thread Safety
 
-Your favorite IDE (IntelliJ IDEA recommended)
+`TicketService.purchaseTicket` is annotated `@Transactional` and acquires a
+`PESSIMISTIC_WRITE` (`SELECT … FOR UPDATE`) row-level lock on the event before
+decrementing `totalTickets`. Concurrent purchase requests for the same event are
+serialised at the database level, preventing overselling.
 
-Backend Setup
-Navigate to the /backend directory.
+## Tests
 
-Run ./gradlew bootRun.
-
-The API will be available at http://localhost:8080.
-
-Frontend Setup
-Navigate to the /frontend directory.
-
-Run npm install.
-
-Run npm run dev.
-
-Open your browser to http://localhost:5173.
-
-🧪 Database Console
-You can access the H2 console to view your data at:
-http://localhost:8080/h2-console
-
-JDBC URL: jdbc:h2:file:./data/ticketdb
-
-User: sa
-
-Password: (leave blank)
-
-📝 Roadmap
-[ ] Implement User Authentication (JWT).
-
-[ ] Add Admin Dashboard for creating events.
-
-[ ] Integrate Email notifications for ticket confirmation.
-
-How to use this with Claude
-- Prompt 1 - The Backend Foundation
-Prompt: "I want to build an Event Ticketing System. Using Kotlin and Spring Boot, please create a REST API.
-Use H2 as a local file-based database.
-Create an Event entity (id, title, date, totalTickets, price) and a Ticket entity (id, eventId, customerName, purchaseDate).
-Provide a TicketService with a thread-safe method to 'purchase' a ticket (check availability, decrement totalTickets, and save the Ticket).
-Include a Controller with endpoints to GET all events and POST a purchase."
+```bash
+./gradlew test
+```
