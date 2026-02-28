@@ -1,6 +1,11 @@
 # Event Ticketing System
 
-A REST API for managing events and purchasing tickets, built with Kotlin and Spring Boot.
+A full-stack event ticketing application with a Kotlin/Spring Boot REST API and a Vue 3 frontend.
+
+## Documentation
+
+- [Backend — API, database, and architecture](./backend-readme.md)
+- [Frontend — Vue 3 components and UI](./frontend-readme.md)
 
 ## Stack
 
